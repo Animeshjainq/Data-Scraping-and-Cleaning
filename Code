@@ -1,0 +1,45 @@
+import pandas as pd
+import re
+import requests
+import csv
+
+
+df = pd.read_csv(r"C:\Users\anime\OneDrive\Desktop\JAIPUR DATA - SheetJS.csv")
+
+# Get the number of columns in the DataFrame
+num_cols = len(df.columns)
+
+# Print the number of columns
+print(f'The dataset has {num_cols} columns.')
+print(df.head())
+
+# Extract phone numbers from the 5th column using regex
+phone_numbers = df.iloc[:, 4].apply(lambda x: re.findall(r'\d{10,12}', str(x))[0] if re.findall(r'\d{10,12}', str(x)) else "")
+
+# Drop the existing 'Phone No' column
+if 'Phone No' in df.columns:
+    df = df.drop('Phone No', axis=1)
+
+# Add a new column with the extracted phone numbers
+df.insert(4, 'Phone No', phone_numbers)
+
+# Split the values in column D and select the first email in each row
+df['Email'] = df['Email'].str.split(';').str[0]
+
+# Create a new 'NAME' column by concatenating the first name and last name columns
+df['NAME'] = df.apply(lambda row: f"{row['First Name']} {row['Last Name']}", axis=1)
+
+# Delete the columns by their labels
+df = df.drop(['First Name', 'Last Name', 'Summary'], axis=1)
+
+# Drop the rows with missing data in the specified columns
+df.dropna(subset=['Email'], inplace=True)
+
+# Save the modified DataFrame to a new CSV file
+df.to_csv(r"C:\Users\anime\OneDrive\Desktop\modified_data.csv", index=False)
+
+# Print the modified DataFrame
+print(df.head())
+
+# Print a message to confirm that the file has been saved
+print('The modified data has been saved to modified_data.csv.')
